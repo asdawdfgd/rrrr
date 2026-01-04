@@ -1,21 +1,12 @@
-version: "3.8"
-services:
-  windows:
-    image: dockurr/windows
-    container_name: windows
-    environment:
-      VERSION: "10"
-      # هنا بنديله قوة الخطة البرو
-      RAM_SIZE: "8G"
-      CPU_CORES: "4"
-      DISK_SIZE: "64G"
-      # اليوزر والباسورد
-      USERNAME: "TOOLBOXLAP"
-      PASSWORD: "admin@123"
-      ACCEPT_EULA: "Y"
-    ports:
-      - 8006:8006
-      - 3389:3389
-    # شيلنا الـ devices عشان Railway مش بيدعمها
-    # شيلنا الـ Volumes المؤقتة عشان متعملش مشاكل Permissions
-    restart: always
+FROM alpine:edge
+
+# 1. تنزيل Tor وأداة التانل (Chisel)
+RUN apk add --no-cache tor curl gzip
+RUN curl -L https://github.com/jpillora/chisel/releases/download/v1.9.1/chisel_1.9.1_linux_amd64.gz | gzip -d > /bin/chisel && chmod +x /bin/chisel
+
+# 2. إعداد Tor
+RUN echo "SocksPort 9050" > /etc/tor/torrc
+
+# 3. تشغيل الاثنين مع بعض (Tor في الخلفية والنفق في الواجهة)
+# استبدل user:pass بأي يوزر وباسورد عايزهم للنفق
+CMD tor -f /etc/tor/torrc & chisel server --port $PORT --auth admin:123456
